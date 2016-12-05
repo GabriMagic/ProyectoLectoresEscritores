@@ -65,6 +65,7 @@ public class MainController {
 		crearButton.disableProperty()
 				.bind(lectoresSpinner.valueFactoryProperty().isNull().or(tareasSpinner.valueProperty().isNull()));
 		listView.itemsProperty().bind(new SimpleListProperty<>(lista));
+
 	}
 
 	@FXML
@@ -78,17 +79,17 @@ public class MainController {
 				escritor.run();
 			}
 		}
-
+		listView.scrollTo(lista.size());
 	}
 
 	@FXML
 	void onReset(ActionEvent event) {
-		System.out.println(lista.size());
 		lista.removeAll(lista);
 	}
 
 	public BorderPane getView() {
 		return view;
 	}
+	
 
 }

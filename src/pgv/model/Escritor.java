@@ -1,17 +1,16 @@
 package pgv.model;
 
 import java.util.concurrent.Semaphore;
-
 import javafx.collections.ObservableList;
 
-public class Escritor extends Thread implements Runnable {
+public class Escritor extends Thread {
 
-	private Semaphore mutex;
 	private String nombre;
+	private Semaphore mutex;
 	private ObservableList<String> lista;
 
 	public Escritor(Semaphore mutex, ObservableList<String> lista) {
-		nombre = "ESCRITOR";
+		nombre = "Escritor";
 		this.mutex = mutex;
 		this.lista = lista;
 	}
@@ -23,8 +22,8 @@ public class Escritor extends Thread implements Runnable {
 		try {
 			mutex.acquire();
 			System.out.println("Escribiendo...");
-			lista.add(nombre);
-			Thread.sleep(0);
+			lista.add(getName());
+			Thread.sleep(100);
 			mutex.release();
 
 		} catch (InterruptedException e) {
@@ -35,5 +34,4 @@ public class Escritor extends Thread implements Runnable {
 	public String getNombre() {
 		return nombre;
 	}
-
 }
