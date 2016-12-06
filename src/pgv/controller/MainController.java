@@ -17,7 +17,7 @@ import javafx.scene.layout.BorderPane;
 import pgv.model.Escritor;
 import pgv.model.Lector;
 
-public class MainController {
+public class MainController extends Thread {
 
 	@FXML
 	private BorderPane view;
@@ -39,15 +39,15 @@ public class MainController {
 
 	private Escritor escritor;
 	private Lector lector;
-	private Semaphore mutex;
+	private Semaphore mutex, barreraEscritor;
 	private ObservableList<String> lista;
 
 	public MainController() {
 
-		mutex = new Semaphore(1);
+		mutex = barreraEscritor = new Semaphore(1);
 		lista = FXCollections.observableArrayList();
-		lector = new Lector(mutex, lista);
-		escritor = new Escritor(mutex, lista);
+		lector = new Lector(mutex, barreraEscritor, lista);
+		escritor = new Escritor(mutex, barreraEscritor, lista);
 
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/pgv/view/MainView.fxml"));
@@ -70,8 +70,6 @@ public class MainController {
 
 	@FXML
 	void onCrear(ActionEvent event) {
-		System.out.println("\n");
-
 		for (int i = 0; i < tareasSpinner.getValue(); i++) {
 			if (lectoresSpinner.getValue() > Math.random()) {
 				lector.run();
@@ -87,9 +85,14 @@ public class MainController {
 		lista.removeAll(lista);
 	}
 
+	@Override
+	public void run() {
+		super.run();
+		System.out.println("RUN CONTROLLER");
+	}
+
 	public BorderPane getView() {
 		return view;
 	}
-	
 
 }

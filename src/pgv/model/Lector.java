@@ -6,13 +6,14 @@ import javafx.collections.ObservableList;
 public class Lector extends Thread {
 
 	private String nombre;
-	private Semaphore mutex;
+	private Semaphore mutex, barreraEscritor;
 	private ObservableList<String> lista;
 
-	public Lector(Semaphore mutex, ObservableList<String> lista) {
+	public Lector(Semaphore mutex, Semaphore barreraEscritor, ObservableList<String> lista) {
 		nombre = "Lector";
 		this.mutex = mutex;
 		this.lista = lista;
+		this.barreraEscritor = barreraEscritor;
 	}
 
 	@Override
@@ -22,7 +23,7 @@ public class Lector extends Thread {
 		try {
 			mutex.acquire();
 			System.out.println("Leyendo...");
-			lista.add(getName());
+			lista.add(getNombre());
 			Thread.sleep(100);
 			mutex.release();
 
