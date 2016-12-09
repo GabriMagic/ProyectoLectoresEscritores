@@ -24,9 +24,9 @@ public class Escritor extends Thread {
 		try {
 			mutex.acquire();
 			System.out.println("Entrando Escritor...");
+			lista.add(getNombre());
 			Thread.sleep(100);
 			mutex.release();
-			lista.add(getNombre());
 
 			barreraEscritor.acquire();
 			System.out.print("Escribiendo");
