@@ -1,6 +1,8 @@
 package pgv.model;
 
 import java.util.concurrent.Semaphore;
+
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 
 public class Lector extends Thread {
@@ -22,8 +24,15 @@ public class Lector extends Thread {
 
 		try {
 			mutex.acquire();
-			System.out.println("Leyendo...");
-			lista.add(getNombre());
+			Platform.runLater(new Runnable() {
+				
+				@Override
+				public void run() {
+					System.out.println("Leyendo...");
+					lista.add(getNombre());
+				}
+			});
+			
 			Thread.sleep(100);
 			mutex.release();
 

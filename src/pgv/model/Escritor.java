@@ -2,6 +2,7 @@ package pgv.model;
 
 import java.util.concurrent.Semaphore;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 
 public class Escritor extends Thread {
@@ -23,9 +24,15 @@ public class Escritor extends Thread {
 
 		try {
 			mutex.acquire();
-			System.out.println("Entrando Escritor...");
-			lista.add(getNombre());
-			Thread.sleep(100);
+			Platform.runLater(new Runnable() {
+				
+				@Override
+				public void run() {
+					System.out.println("Entrando Escritor...");
+					lista.add(getNombre());
+				}
+			});
+			Thread.sleep(100);					
 			mutex.release();
 
 			barreraEscritor.acquire();
