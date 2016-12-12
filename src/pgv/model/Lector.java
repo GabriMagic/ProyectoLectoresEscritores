@@ -3,19 +3,20 @@ package pgv.model;
 import java.util.concurrent.Semaphore;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
+import javafx.beans.property.ListProperty;
 
-public class Lector extends Thread {
+public class Lector extends Cosa {
 
 	private String nombre;
-	private Semaphore mutex, barreraEscritor;
-	private ObservableList<String> lista;
+	private Semaphore mutex;
+	ListProperty<Cosa> lista;
+	private ListProperty<Cosa> listaHabitacion;
 
-	public Lector(Semaphore mutex, Semaphore barreraEscritor, ObservableList<String> lista) {
+	public Lector(Semaphore mutex, ListProperty<Cosa> listaEspera, ListProperty<Cosa> listaHabitacion) {
 		nombre = "Lector";
 		this.mutex = mutex;
-		this.lista = lista;
-		this.barreraEscritor = barreraEscritor;
+		this.lista = listaEspera;
+		this.listaHabitacion = listaHabitacion;
 	}
 
 	@Override
@@ -24,17 +25,22 @@ public class Lector extends Thread {
 
 		try {
 			mutex.acquire();
-			Platform.runLater(new Runnable() {
-				
-				@Override
-				public void run() {
-					System.out.println("Leyendo...");
-					lista.add(getNombre());
-				}
-			});
-			
-			Thread.sleep(100);
-			mutex.release();
+			try {
+				System.out.println("Entrando Lector...");
+				Thread.sleep(1000);
+				lista.add(this);
+				mutex.release();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			System.out.print("Leyendo");
+			lista.remove(this);
+			listaHabitacion.add(this);
+
+			Thread.sleep(2000);
+
+			listaHabitacion.remove(this);
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -43,5 +49,10 @@ public class Lector extends Thread {
 
 	public String getNombre() {
 		return nombre;
+	}
+
+	@Override
+	public String toString() {
+		return getNombre();
 	}
 }

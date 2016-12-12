@@ -16,9 +16,9 @@
          <children>
             <ToolBar>
                <items>
-                  <Label text="Número de Tareas:" />
+                  <Label text="Número de Tareas: " />
                   <Spinner fx:id="tareasSpinner" />
-                  <Label text="Probabilidad de Lector:" />
+                  <Label text="Probabilidad de Lector: " />
                   <Spinner fx:id="lectoresSpinner" />
                </items>
             </ToolBar>

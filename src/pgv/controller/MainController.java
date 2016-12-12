@@ -3,6 +3,8 @@ package pgv.controller;
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
+import javafx.application.Platform;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,10 +18,11 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import pgv.model.Cosa;
 import pgv.model.Escritor;
 import pgv.model.Lector;
 
-public class MainController extends Thread {
+public class MainController {
 
 	@FXML
 	private BorderPane view;
@@ -31,7 +34,7 @@ public class MainController extends Thread {
 	private Button resetButton;
 
 	@FXML
-	private ListView<String> listView, habitacion;
+	private ListView<Cosa> listView, habitacion;
 
 	@FXML
 	private Spinner<Double> lectoresSpinner;
@@ -42,15 +45,16 @@ public class MainController extends Thread {
 	private Escritor escritor;
 	private Lector lector;
 	private Semaphore mutex, barreraEscritor;
-	private ObservableList<String> lista;
+	private ListProperty<Cosa> listaEspera, listaHabitacion;
 	private Stage habitacionStage;
 
 	public MainController() {
 
 		mutex = barreraEscritor = new Semaphore(1);
-		lista = FXCollections.observableArrayList();
-		lector = new Lector(mutex, barreraEscritor, lista);
-		escritor = new Escritor(mutex, barreraEscritor, lista);
+		listaEspera = new SimpleListProperty<>(this, "listaEspera", FXCollections.observableArrayList());
+		listaHabitacion = new SimpleListProperty<>(this, "listaEspera", FXCollections.observableArrayList());
+		lector = new Lector(mutex, listaEspera, listaHabitacion);
+		escritor = new Escritor(mutex, listaEspera, listaHabitacion);
 
 		FXMLloads();
 
@@ -65,7 +69,24 @@ public class MainController extends Thread {
 
 		crearButton.disableProperty()
 				.bind(lectoresSpinner.valueFactoryProperty().isNull().or(tareasSpinner.valueProperty().isNull()));
-		listView.itemsProperty().bind(new SimpleListProperty<>(lista));
+		
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				listView.itemsProperty().bind(listaEspera);
+							
+			}
+		});
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+	
+				habitacion.itemsProperty().bind(listaHabitacion);				
+			}
+		});
+		listaHabitacion.addListener((obs, old, nw) -> listView.scrollTo(listaEspera.size()));
 
 	}
 
@@ -83,7 +104,6 @@ public class MainController extends Thread {
 						escritor.run();
 					}
 				}
-				listView.scrollTo(lista.size());
 			}
 		}).start();
 
@@ -91,13 +111,7 @@ public class MainController extends Thread {
 
 	@FXML
 	void onReset(ActionEvent event) {
-		lista.removeAll(lista);
-	}
-
-	@Override
-	public void run() {
-		super.run();
-		System.out.println("RUN CONTROLLER");
+		listaEspera.removeAll(listaEspera);
 	}
 
 	private void FXMLloads() {
