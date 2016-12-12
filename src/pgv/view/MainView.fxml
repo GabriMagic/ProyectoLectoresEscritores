@@ -35,6 +35,11 @@
       </VBox>
    </top>
    <center>
-      <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+      <HBox BorderPane.alignment="CENTER">
+         <children>
+            <ListView fx:id="listView" prefHeight="200.0" prefWidth="266.0" />
+            <ListView fx:id="habitacion" prefHeight="200.0" prefWidth="286.0" />
+         </children>
+      </HBox>
    </center>
 </BorderPane>

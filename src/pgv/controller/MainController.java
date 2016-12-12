@@ -3,7 +3,6 @@ package pgv.controller;
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
-import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -18,9 +17,9 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import pgv.model.Cosa;
 import pgv.model.Escritor;
 import pgv.model.Lector;
+import pgv.model.LightSwitch;
 
 public class MainController {
 
@@ -34,33 +33,32 @@ public class MainController {
 	private Button resetButton;
 
 	@FXML
-	private ListView<Cosa> listView, habitacion;
-
-	@FXML
 	private Spinner<Double> lectoresSpinner;
 
 	@FXML
 	private Spinner<Integer> tareasSpinner;
 
+	@FXML
+	private ListView<String> listView, habitacion;
+
 	private Escritor escritor;
 	private Lector lector;
-	private Semaphore mutex, barreraEscritor;
-	private ListProperty<Cosa> listaEspera, listaHabitacion;
-	private Stage habitacionStage;
+	private ListProperty<String> listaEspera, listaHabitacion;
+	
+	private Semaphore mutex, noReaders, noWriters;
+	LightSwitch readSwitch = new LightSwitch();
+	LightSwitch writeSwitch = new LightSwitch();
 
 	public MainController() {
 
-		mutex = barreraEscritor = new Semaphore(1);
+		mutex = noReaders = noWriters = new Semaphore(1);
 		listaEspera = new SimpleListProperty<>(this, "listaEspera", FXCollections.observableArrayList());
 		listaHabitacion = new SimpleListProperty<>(this, "listaEspera", FXCollections.observableArrayList());
-		lector = new Lector(mutex, listaEspera, listaHabitacion);
-		escritor = new Escritor(mutex, listaEspera, listaHabitacion);
+
+		lector = new Lector(mutex, noReaders, noWriters, readSwitch, writeSwitch, listaEspera, listaHabitacion);
+		escritor = new Escritor(mutex, noReaders, noWriters, readSwitch, writeSwitch, listaEspera, listaHabitacion);
 
 		FXMLloads();
-
-		habitacionStage = new Stage();
-		habitacionStage.setScene(new Scene(habitacion));
-		habitacionStage.setTitle("Habitación");
 
 		ObservableList<Double> doubles = FXCollections.observableArrayList(0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,
 				0.9, 1.0);
@@ -69,35 +67,21 @@ public class MainController {
 
 		crearButton.disableProperty()
 				.bind(lectoresSpinner.valueFactoryProperty().isNull().or(tareasSpinner.valueProperty().isNull()));
-		
-		Platform.runLater(new Runnable() {
-			
-			@Override
-			public void run() {
-				listView.itemsProperty().bind(listaEspera);
-							
-			}
-		});
-		Platform.runLater(new Runnable() {
-			
-			@Override
-			public void run() {
-	
-				habitacion.itemsProperty().bind(listaHabitacion);				
-			}
-		});
-		listaHabitacion.addListener((obs, old, nw) -> listView.scrollTo(listaEspera.size()));
+
+		listView.itemsProperty().bind(listaEspera);
+		habitacion.itemsProperty().bind(listaHabitacion);
 
 	}
 
 	@FXML
 	void onCrear(ActionEvent event) {
-		habitacionStage.show();
+		onReset(event);
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				for (int i = 0; i < tareasSpinner.getValue(); i++) {
+					// CAMBIAR A ">"
 					if (lectoresSpinner.getValue() > Math.random()) {
 						lector.run();
 					} else {
@@ -119,10 +103,6 @@ public class MainController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/pgv/view/MainView.fxml"));
 			loader.setController(this);
 			view = loader.load();
-
-			FXMLLoader loadHabitacion = new FXMLLoader(getClass().getResource("/pgv/view/Habitacion.fxml"));
-			loadHabitacion.setController(this);
-			habitacion = loadHabitacion.load();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
