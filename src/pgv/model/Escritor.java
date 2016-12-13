@@ -31,24 +31,9 @@ public class Escritor extends Thread {
 	@Override
 	public void run() {
 
-		noWriters.release();
 		try {
-			/**
-			 * ENTRAR EN LA COLA OK
-			 */
-			mutex.acquire();
-			nombre = "Escritor " + num;
-			num++;
-			System.out.println("Entrando Escritor...");
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					listaEspera.add(nombre);
-				}
-			});
 
 			sleep(500);
-			mutex.release();
 			///////////////////////////////////////////
 
 			writeSwitch.lock(noReaders);

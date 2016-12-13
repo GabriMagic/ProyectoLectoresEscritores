@@ -15,6 +15,7 @@ public class Lector extends Thread {
 
 	private Semaphore mutex, noReaders, noWriters;
 	private LightSwitch readSwitch = new LightSwitch();
+	@SuppressWarnings("unused")
 	private LightSwitch writeSwitch = new LightSwitch();
 
 	public Lector(Semaphore mutex, Semaphore noReaders, Semaphore noWriters, LightSwitch readSwitch,
@@ -32,26 +33,14 @@ public class Lector extends Thread {
 	@Override
 	public void run() {
 
-		noReaders.release();
+//		noReaders.release();
 
 		try {
-			// ENTRAR A LA COLA
-			mutex.acquire();
-			nombre = "Lector " + num;
-			num++;
-			System.out.println("Entrando Lector...");
-
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					listaEspera.add(nombre);
-				}
-			});
+	
 			sleep(500);
-			mutex.release();
 
 			noReaders.acquire();
-			readSwitch.lock(noWriters);
+				readSwitch.lock(noWriters);
 			noReaders.release();
 
 			Platform.runLater(new Runnable() {
@@ -61,7 +50,7 @@ public class Lector extends Thread {
 					try {
 						listaEspera.remove(0);
 						listaHabitacion.add(nombre);
-						System.out.println("HAY "+listaHabitacion.size()+" lectores dentro.");
+						System.out.println("HAY " + listaHabitacion.size() + " lectores dentro.");
 						System.out.println("Leyendo");
 						sleep(1000);
 						readSwitch.unlock(noWriters);
@@ -81,6 +70,10 @@ public class Lector extends Thread {
 		return nombre;
 	}
 
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+	
 	@Override
 	public String toString() {
 		return getNombre();
