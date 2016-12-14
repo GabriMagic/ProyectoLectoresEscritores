@@ -49,16 +49,11 @@ public class GenerarLectoresEscritores {
 				hilo = new Lector(noReaders, noWriters, readSwitch, listaEspera, listaHabitacion);
 				hilo.setName("Lector " + numLector);
 				numLector++;
-				System.out.println("Entrando Lector...");
-
 				listaEspera.add(hilo.getName());
 			} else {
 				hilo = new Escritor(noReaders, noWriters, writeSwitch, listaEspera, listaHabitacion);
 				hilo.setName("Escritor " + numEscritor);
 				numEscritor++;
-
-				System.out.println("Entrando escritor...");
-
 				listaEspera.add(hilo.getName());
 			}
 			hilo.start();
