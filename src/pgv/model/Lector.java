@@ -11,59 +11,53 @@ public class Lector extends Thread {
 	private ListProperty<String> listaEspera;
 	private ListProperty<String> listaHabitacion;
 
-	int num = 1;
-
-	private Semaphore mutex, noReaders, noWriters;
+	private Semaphore noReaders, noWriters;
 	private LightSwitch readSwitch = new LightSwitch();
-	@SuppressWarnings("unused")
-	private LightSwitch writeSwitch = new LightSwitch();
 
-	public Lector(Semaphore mutex, Semaphore noReaders, Semaphore noWriters, LightSwitch readSwitch,
-			LightSwitch writeSwitch, ListProperty<String> listaEspera, ListProperty<String> listaHabitacion) {
+	public Lector(Semaphore noReaders, Semaphore noWriters, LightSwitch readSwitch, ListProperty<String> listaEspera,
+			ListProperty<String> listaHabitacion) {
 
 		this.listaEspera = listaEspera;
 		this.listaHabitacion = listaHabitacion;
-		this.mutex = mutex;
 		this.noReaders = noReaders;
 		this.noWriters = noWriters;
 		this.readSwitch = readSwitch;
-		this.writeSwitch = writeSwitch;
 	}
 
 	@Override
 	public void run() {
 
-//		noReaders.release();
-
 		try {
-	
 			sleep(500);
-
 			noReaders.acquire();
-				readSwitch.lock(noWriters);
+			readSwitch.lock(noWriters);
 			noReaders.release();
 
 			Platform.runLater(new Runnable() {
 
 				@Override
 				public void run() {
-					try {
-						listaEspera.remove(0);
-						listaHabitacion.add(nombre);
-						System.out.println("HAY " + listaHabitacion.size() + " lectores dentro.");
-						System.out.println("Leyendo");
-						sleep(1000);
-						readSwitch.unlock(noWriters);
-						listaHabitacion.remove(0);
-
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					listaEspera.remove(getName());
+					listaHabitacion.add(getName());
 				}
 			});
 
-		} catch (Exception e) {
+			sleep(1000);
+
+			Platform.runLater(new Runnable() {
+
+				@Override
+				public void run() {
+					listaHabitacion.remove(getName());
+				}
+			});
+
+			readSwitch.unlock(noWriters);
+
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+
 	}
 
 	public String getNombre() {
@@ -73,7 +67,7 @@ public class Lector extends Thread {
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
 	}
-	
+
 	@Override
 	public String toString() {
 		return getNombre();

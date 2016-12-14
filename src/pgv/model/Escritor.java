@@ -12,19 +12,16 @@ public class Escritor extends Thread {
 
 	int num = 1;
 
-	private Semaphore mutex, noReaders, noWriters;
-	private LightSwitch readSwitch = new LightSwitch();
+	private Semaphore noReaders, noWriters;
 	private LightSwitch writeSwitch = new LightSwitch();
 
-	public Escritor(Semaphore mutex, Semaphore noReaders, Semaphore noWriters, LightSwitch readSwitch,
-			LightSwitch writeSwitch, ListProperty<String> listaEspera, ListProperty<String> listaHabitacion) {
+	public Escritor(Semaphore noReaders, Semaphore noWriters, LightSwitch writeSwitch, ListProperty<String> listaEspera,
+			ListProperty<String> listaHabitacion) {
 
 		this.listaEspera = listaEspera;
 		this.listaHabitacion = listaHabitacion;
-		this.mutex = mutex;
 		this.noReaders = noReaders;
 		this.noWriters = noWriters;
-		this.readSwitch = readSwitch;
 		this.writeSwitch = writeSwitch;
 	}
 
@@ -32,43 +29,34 @@ public class Escritor extends Thread {
 	public void run() {
 
 		try {
-
-			sleep(500);
-			///////////////////////////////////////////
-
 			writeSwitch.lock(noReaders);
 			noWriters.acquire();
+			sleep(500);
+
 			Platform.runLater(new Runnable() {
+
 				@Override
 				public void run() {
-					try {
-						sleep(1000);
-
-						listaEspera.remove(0);
-						listaHabitacion.add(0, nombre);
-						System.out.println("Escribiendo");
-						
-						sleep(2000);
-						
-						System.out.println("HAY "+listaHabitacion.size()+" escritores dentro.");
-						listaHabitacion.remove(0);
-						noWriters.release();
-						writeSwitch.unlock(noReaders);
-						
-					} catch (InterruptedException e) {
-					}
+					listaHabitacion.add(getName());
+					listaEspera.remove(getName());
 				}
 			});
 
-			// Platform.runLater(new Runnable() {
-			// @Override
-			// public void run() {
-			// listaHabitacion.remove(0);
-			// }
-			// });
+			sleep(1000);
+			Platform.runLater(new Runnable() {
 
-		} catch (Exception e) {
+				@Override
+				public void run() {
+					listaHabitacion.remove(getName());
+				}
+			});
+
+			noWriters.release();
+			writeSwitch.unlock(noReaders);
+
+		} catch (InterruptedException e) {
 		}
+
 	}
 
 	@Override
